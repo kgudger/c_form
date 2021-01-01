@@ -14,11 +14,12 @@
 * main and checkForm in MainPage class not overwritten.
 * 
 */
-require_once("/var/www/html/wp-content/plugins/c_form/includes/mainpage.php");
+require_once("/var/www/html/kgwpt/wp-content/plugins/c_form/includes/mainpage.php");
 include_once "/var/www/html/includes/util.php";
-require_once("/var/www/html/wp-content/plugins/c_form/includes/recaptchalib.php");
-require("/var/www/html/wp-content/plugins/c_form/sendgrid-php/sendgrid-php.php");
-require("/var/www/html/wp-content/plugins/c_form/sendgrid-php/sendgrid-php.php");
+require_once("/var/www/html/kgwpt/wp-content/plugins/c_form/includes/recaptchalib.php");
+//require("/var/www/html/kgwpt/wp-content/plugins/c_form/sendgrid-php/sendgrid-php.php");
+require("/var/www/html/kgwpt/wp-content/plugins/c_form/sendgrid-php/sendgrid-php.php");
+//require("/var/www/html/kgwpt/wp-content/plugins/c_form/sendgrid-php/sendgrid-php.php");
 /**
  * Child class of MainPage used for user preferrences page.
  *
@@ -49,8 +50,12 @@ function processData(&$uid) {
 	        $_POST["g-recaptcha-response"]
 	    );
 	    if ($response != null && $response->success) {
-		$this->sendGridMail($email,$subject,$content,$fname,$lname);
-	        echo "Your email is sent";
+		$rfile = fopen("response.txt", "a") or die("Unable to open file!");
+		$txt = $this->sendGridMail($email,$subject,$content,$fname,$lname);
+		fwrite($rfile, $txt);
+		fclose($myfile);
+//		echo $this->sendGridMail($email,$subject,$content,$fname,$lname);
+	        echo "<font color='red'>Your email was sent</font>";
 	    } else 
 		echo "Please check the reCaptcha box";
 	} else 
@@ -105,6 +110,7 @@ $email = new \SendGrid\Mail\Mail();
 $email->setFrom($femail, $fname . " " . $lname);
 $email->setSubject($subject);
 $email->addTo($this->cookie_key, "From Web Form");
+//echo "email is: " . $this->cookie_key;
 $email->addContent("text/plain", $content);
 $email->addContent(
     "text/html", "$content"
@@ -112,7 +118,7 @@ $email->addContent(
 $sendgrid = new \SendGrid($this->sendGRID);
 try {
     $response = $sendgrid->send($email);
-    return $response->body() . "<br>";
+    return $response->body() ;
 /*
     print $response->statusCode() . "\n";
     print_r($response->headers());
